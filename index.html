@@ -17,7 +17,7 @@
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"blog.davidnotes.net","root":"/","scheme":"Muse","version":"7.7.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+    var CONFIG = {"hostname":"blog.davidnotes.net","root":"/","scheme":"Mist","version":"7.7.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
   <meta property="og:type" content="website">
@@ -164,6 +164,109 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://blog.davidnotes.net/2013/10/13/cinder-intro/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="David">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Davidnotes">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/2013/10/13/cinder-intro/" class="post-title-link" itemprop="url">Cinder 简介</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2013-10-13 00:00:00" itemprop="dateCreated datePublished" datetime="2013-10-13T00:00:00+08:00">2013-10-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-02-26 01:56:29" itemprop="dateModified" datetime="2020-02-26T01:56:29+08:00">2020-02-26</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/OpenStack/" itemprop="url" rel="index"><span itemprop="name">OpenStack</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>本文主要是作为Cinder模块的原理简介，这里的东西其实在OpenStack 简介中说了大部分，增加了一幅工作架构图片。 </p>
+<p>Cinder是OpenStack项目的块存储模块，从Folsom版本加入。是原来的nova-volume模块的演化。主要负责OpenStack持久化存储卷的管理。</p>
+<h3 id="Cinder-架构"><a href="#Cinder-架构" class="headerlink" title="Cinder 架构"></a>Cinder 架构</h3><p>Cinder核心主要有四块：  </p>
+<ul>
+<li>cinder-api</li>
+<li>cinder-volume</li>
+<li>cinder-schedule</li>
+<li>cinder-backup</li>
+</ul>
+<p>数据状态位存储通过sql数据库实现，官方推荐是MySql。进程间通信采用消息队列，一般是RabbitMQ。  </p>
+<img src="/2013/10/13/cinder-intro/CinderStorageIntro0.png" class="" title="openstack架构图">
+
+<p>cinder-api: 对外通信接口，外部request都是通过cinder-api传入，然后进行相应的转发进行相应的处理。常见的操作包括创建删除管理卷或快照，或者对现有的卷进行备份。  </p>
+<p>cinder-volume：cinder管理volume的控制模块，负责对volume进行创建删除管理工作。设备驱动即存在在这个部分，通过驱动实现cinder-volume与物理或逻辑存储的通信。  </p>
+<p>cinder-schedule: cinder-schedule的工作是对不同的存储形式进行筛选。当cinder-api接收到创建volume的请求，一般会附带一个volume-type的参数，cinder-schedule的工作就是根据这个volume-type进行backend storage的路由。选择相应的后端存储进行创建volume的工作。  </p>
+<img src="/2013/10/13/cinder-intro/CinderStorageIntro1.png" class="" title="openstack架构图">
+
+<img src="/2013/10/13/cinder-intro/CinderStorageIntro2.png" class="" title="openstack架构图">  
+
+<p>cinder-backup：这个模块是将现有卷数据进行备份，然后转储到对象存储中去。  </p>
+<h3 id="Cinder-工作原理"><a href="#Cinder-工作原理" class="headerlink" title="Cinder 工作原理"></a>Cinder 工作原理</h3><p>Cinder对于OpenStack的意义类似于磁盘管理对于操作系统。就是一个存储管理系统，将物理存储虚拟化为系统可用的存储。目前各厂商驱动大都自主开发，集成在cinder/volume/driver模块下。后端存储可以是 NAS,SAN 等。存储数据的完整性和可用性也是由后端存储保障的。<br>详细的工作流：  </p>
+<img src="/2013/10/13/cinder-intro/CinderStorageIntro3.png" class="" title="openstack架构图">
+
+<p>request由cinder-api接收，然后分析，传送到MQ中，后端相应的模块从MQ中取出requst。然后根据指令进行必要的操作。图片已经说的相当详尽了。cinder 内部间通讯都是基于<a href="http://en.wikipedia.org/wiki/Advanced_Message_Queuing_Protocol" target="_blank" rel="noopener">AMQP</a>的。  </p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>Cinder模块并不是一个特别复杂的模块，处于去耦的需要，在F版以后独立了出来。模块的主要功能也是进行存储管理的工作，做相应的全盘数据备份工作。<br>当然随着OpenStack项目的日益完善，社区的活跃，越来越多的厂商贡献代码，Cinder的功能自然也会愈来愈加强大。  </p>
+<h3 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h3><ol>
+<li><a href="https://wiki.openstack.org/wiki/Cinder" target="_blank" rel="noopener">cinder</a></li>
+<li><a href="http://www.wzxue.com/%E5%9D%97%E5%AD%98%E5%82%A8%E7%9A%84%E4%B8%96%E7%95%8C/" target="_blank" rel="noopener">块存储的世界(入门级)</a></li>
+<li><a href="https://wiki.openstack.org/w/images/3/3b/Cinder-grizzly-deep-dive-pub.pdf" target="_blank" rel="noopener">Cinder-grizzly-deep-dive-pub</a></li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-Hans">
     <link itemprop="mainEntityOfPage" href="https://blog.davidnotes.net/2013/10/12/openstack-intro/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -195,7 +298,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-02-24 19:41:58" itemprop="dateModified" datetime="2020-02-24T19:41:58+08:00">2020-02-24</time>
+                <time title="Modified: 2020-02-26 01:56:40" itemprop="dateModified" datetime="2020-02-26T01:56:40+08:00">2020-02-26</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -240,10 +343,15 @@
 <li>平台即服务(PaaS)</li>
 <li>软件即服务 (SaaS)</li>
 </ul>
-<p>这里有张参考图：<br><img src="http://blog-gu.u.qiniudn.com/OpenStack0.png" alt=""></p>
+<p>这里有张参考图： </p>
+<img src="/2013/10/12/openstack-intro/OpenStack0.png" class="" title="openstack架构图">
+
 <p>在大多数云服务模型中，IaaS供应商提供了物理机或者虚拟机以及其他资源。云中可操作的hypervisor池提供大量计算资源，并且可以根据用户需求进行弹性调用资源。IaaS通常还提供虚拟机磁盘镜像库，块存储或者文件存储，防火墙，负载均衡，ip池，vlan以及软件包等等。<br>IaaS云用户通过镜像部署操作系统，通过软件包来安装维护服务应用。云服务供应商往往都按消费收取费用。<br>业界比较出名的IaaS供应商有：AMAZON EC2, Rackspace, Linode, Windows Azure Cloud Services等。<br>在PaaS模式中，云服务供应商提供一个计算平台，平台包括操作系统，开发语言运行环境，数据库，以及服务器。在PaaS云环境中，开发者不需购买和维护物理服务器就可以开发和部署他们的应用。计算和存储资源都是按需弹性分配的，用户不需要手动申请资源。<br>PaaS供应商主要有：GAE，AWS Elastic Beanstalk等。<br>在SaaS模式中，云服务供应商提供了应用和数据库的接入，用户既不用管硬件环境，也不用管运行平台。也就无需在自己设备上安装软件就可以使用服务。这大大简化了应用维护和支持的成本。<br>SaaS供应商主要有：Google Apps，Microsoft Office 365等。 </p>
 <p>除开上述三种云服务外还有诸如NaaS（Network as a service）, Desktop as a service, Business process as a service, commuication as a service等等云概念，但很多都是上述三种的延伸，也是很多三方公司自己定义的。此处不多赘述 </p>
-<h4 id="云计算部署模型"><a href="#云计算部署模型" class="headerlink" title="云计算部署模型"></a>云计算部署模型</h4><p>先上图：<br><img src="http://blog-gu.u.qiniudn.com/OpenStack1.png" alt=""><br>目前云计算部署模型主要有四种： </p>
+<h4 id="云计算部署模型"><a href="#云计算部署模型" class="headerlink" title="云计算部署模型"></a>云计算部署模型</h4><p>先上图：</p>
+<img src="/2013/10/12/openstack-intro/OpenStack1.png" class="" title="openstack架构图">
+
+<p>目前云计算部署模型主要有四种： </p>
 <ul>
 <li>公有云 (Public Cloud)</li>
 <li>私有云 (Private Cloud)</li>
@@ -260,7 +368,8 @@
 <li>服务内部通信基于AMQP，官方推荐的是Rabbit MQ;</li>
 <li>大部分进程都实现了WSGI中间件。</li>
 </ul>
-<h4 id="产品线路图"><a href="#产品线路图" class="headerlink" title="产品线路图"></a>产品线路图</h4><p><img src="http://blog-gu.u.qiniudn.com/OpenStack13.png" alt=""></p>
+<h4 id="产品线路图"><a href="#产品线路图" class="headerlink" title="产品线路图"></a>产品线路图</h4><img src="/2013/10/12/openstack-intro/OpenStack13.png" class="" title="openstack架构图">
+
 <h4 id="OpenStack-组件-Grizzly"><a href="#OpenStack-组件-Grizzly" class="headerlink" title="OpenStack 组件(Grizzly)"></a>OpenStack 组件(Grizzly)</h4><p>在grizzly版本中，主要构成有7个模块：</p>
 <ul>
 <li>计算(compute);</li>
@@ -272,12 +381,17 @@
 <li>镜像(image)服务</li>
 </ul>
 <p>模块具体功能，下文将会有详细叙述。 </p>
-<h4 id="概念架构"><a href="#概念架构" class="headerlink" title="概念架构"></a>概念架构</h4><p><img src="http://blog-gu.u.qiniudn.com/OpenStack3.png" alt=""></p>
+<h4 id="概念架构"><a href="#概念架构" class="headerlink" title="概念架构"></a>概念架构</h4><img src="/2013/10/12/openstack-intro/OpenStack3.png" class="" title="openstack架构图">
+
 <p>这是一个简化的样式架构图，基本展示了各个部分的功能和相互的接口调用。但是Openstack并不是一个极端的架构，各个部分的功能都可以独立工作。当然，就实践来看，没个模块似乎都离不开keystone。除此以外，每个模块的API大都兼容AWS的，这就给简化系统迁移带来了可能。</p>
-<h4 id="逻辑架构"><a href="#逻辑架构" class="headerlink" title="逻辑架构"></a>逻辑架构</h4><p><img src="http://blog-gu.u.qiniudn.com/OpenStack4.png" alt=""></p>
+<h4 id="逻辑架构"><a href="#逻辑架构" class="headerlink" title="逻辑架构"></a>逻辑架构</h4><img src="/2013/10/12/openstack-intro/OpenStack3.png" class="" title="openstack架构图">
+
 <p>一图胜千言，这张图可以看出我们要说点干货(虽然我有点讨厌这个词)了。同时可能有点看不清，没事，待会儿就能看拿到局部放大图。 </p>
-<h4 id="Dashboard"><a href="#Dashboard" class="headerlink" title="Dashboard"></a>Dashboard</h4><p><img src="http://blog-gu.u.qiniudn.com/OpenStack5.png" alt=""></p>
-<p><img src="http://blog-gu.u.qiniudn.com/OpenStack6.png" alt=""></p>
+<h4 id="Dashboard"><a href="#Dashboard" class="headerlink" title="Dashboard"></a>Dashboard</h4><img src="/2013/10/12/openstack-intro/OpenStack5.png" class="" title="openstack架构图">
+
+
+<img src="/2013/10/12/openstack-intro/OpenStack6.png" class="" title="openstack架构图">
+
 <p>Horizon 是官方提供的OpenStack图形界面。基于Django实现，界面提供了以下信息：</p>
 <ul>
 <li>配额用度信息；</li>
@@ -290,12 +404,13 @@
 <li>用户账户管理员</li>
 <li>系统信息</li>
 <li><strong>网络</strong></li>
-<li><strong>Glance镜像上传</strong></li>
+<li><strong>Glance 镜像上传</strong></li>
 <li><strong>实例支持细分</strong></li>
 <li><strong>跨节点实例迁移</strong></li>
 </ul>
 <p>（<strong>加粗</strong>部分是G版新增部分）<br>Horizon 的架构非常简单，官方就是通过mod_wsgi进行部署在Apache上，代码独立可复用。 </p>
-<h4 id="Compute"><a href="#Compute" class="headerlink" title="Compute"></a>Compute</h4><p><img src="http://blog-gu.u.qiniudn.com/OpenStack7.png" alt=""></p>
+<h4 id="Compute"><a href="#Compute" class="headerlink" title="Compute"></a>Compute</h4><img src="/2013/10/12/openstack-intro/OpenStack7.png" class="" title="openstack架构图">
+
 <p>刚刚说完最简单的，现在可以说一下最复杂的。Nova, 这个模块几乎是OpenStack原型的存在，也是计算虚拟化的核心。由上图也可以看出来，Nova的进程非常之多。Nova中最突出的功能如下：</p>
 <ul>
 <li>启动，分配，停止以及查询虚拟机（实例）</li>
@@ -308,7 +423,8 @@
 <p>在Grizzly版本中有了多处修改。其中包括了，nova-network和nova-volume的弃用（取而代之的是quntumn和cinder,quntumn在H版中更名Neutron），同时nova-compute针对数据库的去耦（通过no-compute-db实现）。所有这一系列的变化都是可选的，因为之前的代码都可以获取到。毫无疑问的是，随着项目的迭代，上述组件不久就会消失。 </p>
 <p>下面聊一下Nova各个模块进程的功能特性：<br>nova-api: nova-api是Nova进程家族的对外通信接口。支持OpenStack Compute API, 兼容 Amazon EC2 的 API 以及一个管理员的特殊接口。同时它初始化大多数协调进程以及强制一些策略检查。Nova针对不同的进程实现不同的API或者API组。<br>nova-compute: nova-compute是通过虚拟技术API创建和中介虚拟机实例的基础进程。(eg. XenAPI for XenServer/XCP, libvirt for KVM or QEMU, VMwareAPI for VMware, etc. G版开始支持Hyper-V)。nova-compute进程内部实现比较复杂，但是基础原理还是很好理解的：从消息队列(MQ)中获取request命令，然后执行并通过nova-conductor在数据库中更新状态。nova-conductor组件使用是可选的，使用的话对安全性提升会有帮助。<br>nova-schedule: nova-schedule进程是nova组件中逻辑最简单的：从消息队列中取出一条命令，然后决定在哪个实例上云运行。而事实上，目前这个模块实现是最复杂的之一。<br>nova-conductor: nova-conductor是G版新增的服务。它负责其他进程对数据库的访问（目前只有nova-compute），由它过滤后的访问的安全性非常之高。</p>
 <p>其余模块，建议参考官方文档。 </p>
-<h4 id="Object-store"><a href="#Object-store" class="headerlink" title="Object store"></a>Object store</h4><p><img src="http://blog-gu.u.qiniudn.com/OpenStack8.png" alt=""></p>
+<h4 id="Object-store"><a href="#Object-store" class="headerlink" title="Object store"></a>Object store</h4><img src="/2013/10/12/openstack-intro/OpenStack8.png" class="" title="openstack架构图">
+
 <p>OpenStack 的对象存储（“Swift”）设计用于可伸缩扩展的大容量数据存储。不同于文件服务器的是，它是完全分布式的，多份冗余存储。Swift提供了以下功能: </p>
 <ul>
 <li>存储和恢复对象（文件）；</li>
@@ -323,7 +439,8 @@
 <li>Container server管理对象存储服务的容器映射表。</li>
 <li>Object server管理在存储节点上的对象。</li>
 </ul>
-<h4 id="Image-Store"><a href="#Image-Store" class="headerlink" title="Image Store"></a>Image Store</h4><p><img src="http://blog-gu.u.qiniudn.com/OpenStack9.png" alt=""></p>
+<h4 id="Image-Store"><a href="#Image-Store" class="headerlink" title="Image Store"></a>Image Store</h4><img src="/2013/10/12/openstack-intro/OpenStack9.png" class="" title="openstack架构图">
+
 <p>OpenStack Image 存储集中了用户和云服务的镜像：</p>
 <ul>
 <li>存储用户可以启动实例的公共或者私有镜像;</li>
@@ -339,12 +456,13 @@
 <li>一个镜像文件的存储仓储，在上图中，Swift用作镜像仓储，但这是可配置的。</li>
 </ul>
 <p>除了 Swift，Glance 支持常见的文件系统RADOS的块存储，Amazon S3 以及HTTP。但部分是只读的。</p>
-<h4 id="Identity"><a href="#Identity" class="headerlink" title="Identity"></a>Identity</h4><p><img src="http://blog-gu.u.qiniudn.com/OpenStack9.png" alt=""></p>
-<p>Keystone为Openstack的策略，认证，catalog，token提供了一个单点集成。</p>
+<h4 id="Identity"><a href="#Identity" class="headerlink" title="Identity"></a>Identity</h4><img src="/2013/10/12/openstack-intro/OpenStack10.png" class="" title="openstack架构图">
+
+<p>Keystone 为 Openstack 的策略，认证，catalog，token 提供了一个单点集成。</p>
 <ul>
 <li>对接入服务进行的事件和用户进行认证;</li>
-<li>存储用户和租户的RBAC;</li>
-<li>在云端提供服务的catalog;</li>
+<li>存储用户和租户的 RBAC;</li>
+<li>在云端提供服务的 catalog;</li>
 <li>创建服务或者用户的使用策略;</li>
 </ul>
 <p>架构上来说，keystone非常简单：</p>
@@ -352,7 +470,8 @@
 <li>Keystone 处理API请求同时提供可配置的catalog，策略，token以及认证服务;</li>
 <li>每个keystone功能都有一个允许不同方式使用特别服务的插件。大多数支持标准接口诸如LDAP或者SQL以及kv存储。</li>
 </ul>
-<h4 id="Network"><a href="#Network" class="headerlink" title="Network"></a>Network</h4><p><img src="http://blog-gu.u.qiniudn.com/OpenStack10.png" alt=""></p>
+<h4 id="Network"><a href="#Network" class="headerlink" title="Network"></a>Network</h4><img src="/2013/10/12/openstack-intro/OpenStack11.png" class="" title="openstack架构图">
+
 <p>Quantum 向由其他OpenStack服务（主要是Nova）管理的接口设备提供“Network connectivity as a service”。它提供以下服务：</p>
 <ul>
 <li>用户可以创建自己的网络以及链接服务器接口;</li>
@@ -365,7 +484,8 @@
 <li>Quantum扩展以及分支进行实际工作，开关端口，创建网络或超网以及IP地址。这些插件的区别取决于其特有云的技术实现。Quantum配备的插件和扩展：Cisco 虚拟和物理交换机，Nicira NVP产品，NEC OpenFlow产品，Open vSwitch, Linux 桥和Ryu 网络操作系统;</li>
 <li>大多数Quantum安装也会使用消息队列来进行quantum-server和大量扩展以及数据库之间的数据交互。</li>
 </ul>
-<h4 id="Block-Storage"><a href="#Block-Storage" class="headerlink" title="Block Storage"></a>Block Storage</h4><p><img src="http://blog-gu.u.qiniudn.com/OpenStack11.png" alt=""></p>
+<h4 id="Block-Storage"><a href="#Block-Storage" class="headerlink" title="Block Storage"></a>Block Storage</h4><img src="/2013/10/12/openstack-intro/OpenStack12.png" class="" title="openstack架构图">
+
 <p>Cinder 将存储功能从OpenStack Compute中分离了出来。OpenStack 块存储API允许卷和卷类别一句卷快照的操作： </p>
 <ul>
 <li>创建、配置以及删除卷;</li>
@@ -467,7 +587,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">1</span>
+          <span class="site-state-item-count">2</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -476,7 +596,7 @@
         <span class="site-state-item-name">categories</span>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-count">2</span>
         <span class="site-state-item-name">tags</span>
       </div>
   </nav>
@@ -497,6 +617,8 @@
     <footer class="footer">
       <div class="footer-inner">
         
+  <div class="beian"><a href="http://www.beian.miit.gov.cn/" rel="noopener" target="_blank">沪ICP备20002701号 </a>
+  </div>
 
 <div class="copyright">
   
@@ -510,7 +632,7 @@
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> v4.2.0
   </div>
   <span class="post-meta-divider">|</span>
-  <div class="theme-info">Theme – <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.7.1
+  <div class="theme-info">Theme – <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.7.1
   </div>
 
         

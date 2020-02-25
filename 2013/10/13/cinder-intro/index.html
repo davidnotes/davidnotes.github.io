@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.davidnotes.net","root":"/","scheme":"Mist","version":"7.7.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="本文主要是作为Cinder模块的原理简介，这里的东西其实在OpenStack 简介中说了大部分，增加了一幅工作架构图片。  Cinder是OpenStack项目的块存储模块，从Folsom版本加入。是原来的nova-volume模块的演化。主要负责OpenStack持久化存储卷的管理。 Cinder 架构Cinder核心主要有四块：    cinder-api cinder-volume cind">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Cinder 简介">
+<meta property="og:url" content="https://blog.davidnotes.net/2013/10/13/cinder-intro/index.html">
+<meta property="og:site_name" content="Davidnotes">
+<meta property="og:description" content="本文主要是作为Cinder模块的原理简介，这里的东西其实在OpenStack 简介中说了大部分，增加了一幅工作架构图片。  Cinder是OpenStack项目的块存储模块，从Folsom版本加入。是原来的nova-volume模块的演化。主要负责OpenStack持久化存储卷的管理。 Cinder 架构Cinder核心主要有四块：    cinder-api cinder-volume cind">
+<meta property="og:image" content="https://blog.davidnotes.net/2013/10/13/cinder-intro/CinderStorageIntro0.png">
+<meta property="og:image" content="https://blog.davidnotes.net/2013/10/13/cinder-intro/CinderStorageIntro1.png">
+<meta property="og:image" content="https://blog.davidnotes.net/2013/10/13/cinder-intro/CinderStorageIntro2.png">
+<meta property="og:image" content="https://blog.davidnotes.net/2013/10/13/cinder-intro/CinderStorageIntro3.png">
+<meta property="article:published_time" content="2013-10-12T16:00:00.000Z">
+<meta property="article:modified_time" content="2020-02-25T17:56:29.545Z">
+<meta property="article:author" content="David">
+<meta property="article:tag" content="OpenStack, Block storage, 简介">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.davidnotes.net/2013/10/13/cinder-intro/CinderStorageIntro0.png">
+
+<link rel="canonical" href="https://blog.davidnotes.net/2013/10/13/cinder-intro/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>Cinder 简介 | Davidnotes</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-47124271-1"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-47124271-1');
+      }
+    </script>
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?6dc82b0ea275e3f9d8af55500b6880a6";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Davidnotes</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">words from david</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://blog.davidnotes.net/2013/10/13/cinder-intro/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="David">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Davidnotes">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Cinder 简介
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2013-10-13 00:00:00" itemprop="dateCreated datePublished" datetime="2013-10-13T00:00:00+08:00">2013-10-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-02-26 01:56:29" itemprop="dateModified" datetime="2020-02-26T01:56:29+08:00">2020-02-26</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/OpenStack/" itemprop="url" rel="index"><span itemprop="name">OpenStack</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要是作为Cinder模块的原理简介，这里的东西其实在OpenStack 简介中说了大部分，增加了一幅工作架构图片。 </p>
+<p>Cinder是OpenStack项目的块存储模块，从Folsom版本加入。是原来的nova-volume模块的演化。主要负责OpenStack持久化存储卷的管理。</p>
+<h3 id="Cinder-架构"><a href="#Cinder-架构" class="headerlink" title="Cinder 架构"></a>Cinder 架构</h3><p>Cinder核心主要有四块：  </p>
+<ul>
+<li>cinder-api</li>
+<li>cinder-volume</li>
+<li>cinder-schedule</li>
+<li>cinder-backup</li>
+</ul>
+<p>数据状态位存储通过sql数据库实现，官方推荐是MySql。进程间通信采用消息队列，一般是RabbitMQ。  </p>
+<img src="/2013/10/13/cinder-intro/CinderStorageIntro0.png" class="" title="openstack架构图">
+
+<p>cinder-api: 对外通信接口，外部request都是通过cinder-api传入，然后进行相应的转发进行相应的处理。常见的操作包括创建删除管理卷或快照，或者对现有的卷进行备份。  </p>
+<p>cinder-volume：cinder管理volume的控制模块，负责对volume进行创建删除管理工作。设备驱动即存在在这个部分，通过驱动实现cinder-volume与物理或逻辑存储的通信。  </p>
+<p>cinder-schedule: cinder-schedule的工作是对不同的存储形式进行筛选。当cinder-api接收到创建volume的请求，一般会附带一个volume-type的参数，cinder-schedule的工作就是根据这个volume-type进行backend storage的路由。选择相应的后端存储进行创建volume的工作。  </p>
+<img src="/2013/10/13/cinder-intro/CinderStorageIntro1.png" class="" title="openstack架构图">
+
+<img src="/2013/10/13/cinder-intro/CinderStorageIntro2.png" class="" title="openstack架构图">  
+
+<p>cinder-backup：这个模块是将现有卷数据进行备份，然后转储到对象存储中去。  </p>
+<h3 id="Cinder-工作原理"><a href="#Cinder-工作原理" class="headerlink" title="Cinder 工作原理"></a>Cinder 工作原理</h3><p>Cinder对于OpenStack的意义类似于磁盘管理对于操作系统。就是一个存储管理系统，将物理存储虚拟化为系统可用的存储。目前各厂商驱动大都自主开发，集成在cinder/volume/driver模块下。后端存储可以是 NAS,SAN 等。存储数据的完整性和可用性也是由后端存储保障的。<br>详细的工作流：  </p>
+<img src="/2013/10/13/cinder-intro/CinderStorageIntro3.png" class="" title="openstack架构图">
+
+<p>request由cinder-api接收，然后分析，传送到MQ中，后端相应的模块从MQ中取出requst。然后根据指令进行必要的操作。图片已经说的相当详尽了。cinder 内部间通讯都是基于<a href="http://en.wikipedia.org/wiki/Advanced_Message_Queuing_Protocol" target="_blank" rel="noopener">AMQP</a>的。  </p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>Cinder模块并不是一个特别复杂的模块，处于去耦的需要，在F版以后独立了出来。模块的主要功能也是进行存储管理的工作，做相应的全盘数据备份工作。<br>当然随着OpenStack项目的日益完善，社区的活跃，越来越多的厂商贡献代码，Cinder的功能自然也会愈来愈加强大。  </p>
+<h3 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h3><ol>
+<li><a href="https://wiki.openstack.org/wiki/Cinder" target="_blank" rel="noopener">cinder</a></li>
+<li><a href="http://www.wzxue.com/%E5%9D%97%E5%AD%98%E5%82%A8%E7%9A%84%E4%B8%96%E7%95%8C/" target="_blank" rel="noopener">块存储的世界(入门级)</a></li>
+<li><a href="https://wiki.openstack.org/w/images/3/3b/Cinder-grizzly-deep-dive-pub.pdf" target="_blank" rel="noopener">Cinder-grizzly-deep-dive-pub</a></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/OpenStack-Block-storage-%E7%AE%80%E4%BB%8B/" rel="tag"># OpenStack, Block storage, 简介</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2013/10/12/openstack-intro/" rel="prev" title="OpenStack 简介">
+      <i class="fa fa-chevron-left"></i> OpenStack 简介
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Cinder-架构"><span class="nav-number">1.</span> <span class="nav-text">Cinder 架构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Cinder-工作原理"><span class="nav-number">2.</span> <span class="nav-text">Cinder 工作原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考文档"><span class="nav-number">4.</span> <span class="nav-text">参考文档</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">David</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">2</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="beian"><a href="http://www.beian.miit.gov.cn/" rel="noopener" target="_blank">沪ICP备20002701号 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">David</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> v4.2.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.7.1
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'fe2c9a6490aaeb1a7644',
+      clientSecret: '2e7d73887f373fd28de3ff58cf33b5be40bfbd33',
+      repo        : 'davidnotes.github.io',
+      owner       : 'davidnotes',
+      admin       : ['davidnotes'],
+      id          : '378df80d9745e35a370ef0efdcc2587b',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>
