@@ -20,28 +20,45 @@
     var CONFIG = {"hostname":"blog.davidnotes.net","root":"/","scheme":"Muse","version":"7.7.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta property="og:type" content="website">
-<meta property="og:title" content="Davidnotes">
-<meta property="og:url" content="https://blog.davidnotes.net/index.html">
+  <meta name="description" content="本文关于云计算方面资料主要源于维基百科，OpenStack部分源于对OpenStack Grizzly Architecture的翻译修改。  简介OpenStack是当下最为活跃的为公共及私有云的建设与管理提供软件的开源项目（由NASA和RackSpance合作开发，以Apache许可证授权），提供了完整的IaaS解决方案。任何企业和个人都可以使用OpenStack搭建私有云平台向企业内部提供服">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OpenStack 简介">
+<meta property="og:url" content="https://blog.davidnotes.net/2013/10/12/openstack-intro/index.html">
 <meta property="og:site_name" content="Davidnotes">
+<meta property="og:description" content="本文关于云计算方面资料主要源于维基百科，OpenStack部分源于对OpenStack Grizzly Architecture的翻译修改。  简介OpenStack是当下最为活跃的为公共及私有云的建设与管理提供软件的开源项目（由NASA和RackSpance合作开发，以Apache许可证授权），提供了完整的IaaS解决方案。任何企业和个人都可以使用OpenStack搭建私有云平台向企业内部提供服">
+<meta property="og:image" content="http://blog-gu.u.qiniudn.com/OpenStack0.png">
+<meta property="og:image" content="http://blog-gu.u.qiniudn.com/OpenStack1.png">
+<meta property="og:image" content="http://blog-gu.u.qiniudn.com/OpenStack13.png">
+<meta property="og:image" content="http://blog-gu.u.qiniudn.com/OpenStack3.png">
+<meta property="og:image" content="http://blog-gu.u.qiniudn.com/OpenStack4.png">
+<meta property="og:image" content="http://blog-gu.u.qiniudn.com/OpenStack5.png">
+<meta property="og:image" content="http://blog-gu.u.qiniudn.com/OpenStack6.png">
+<meta property="og:image" content="http://blog-gu.u.qiniudn.com/OpenStack7.png">
+<meta property="og:image" content="http://blog-gu.u.qiniudn.com/OpenStack8.png">
+<meta property="og:image" content="http://blog-gu.u.qiniudn.com/OpenStack9.png">
+<meta property="og:image" content="http://blog-gu.u.qiniudn.com/OpenStack9.png">
+<meta property="og:image" content="http://blog-gu.u.qiniudn.com/OpenStack10.png">
+<meta property="og:image" content="http://blog-gu.u.qiniudn.com/OpenStack11.png">
+<meta property="article:published_time" content="2013-10-11T16:00:00.000Z">
+<meta property="article:modified_time" content="2020-02-24T11:41:58.838Z">
 <meta property="article:author" content="David">
-<meta property="article:tag" content="JavaScrpit">
-<meta property="article:tag" content=" Java">
+<meta property="article:tag" content="OpenStack, IaaS, 简介">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://blog-gu.u.qiniudn.com/OpenStack0.png">
 
-<link rel="canonical" href="https://blog.davidnotes.net/">
+<link rel="canonical" href="https://blog.davidnotes.net/2013/10/12/openstack-intro/">
 
 
 <script id="page-configurations">
   // https://hexo.io/docs/variables.html
   CONFIG.page = {
     sidebar: "",
-    isHome: true,
-    isPost: false
+    isHome: false,
+    isPost: true
   };
 </script>
 
-  <title>Davidnotes</title>
+  <title>OpenStack 简介 | Davidnotes</title>
   
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-47124271-1"></script>
     <script>
@@ -160,10 +177,10 @@
             
 
   <div class="posts-expand">
-        
+      
   
   
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-Hans">
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
     <link itemprop="mainEntityOfPage" href="https://blog.davidnotes.net/2013/10/12/openstack-intro/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -177,8 +194,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/2013/10/12/openstack-intro/" class="post-title-link" itemprop="url">OpenStack 简介</a>
+          OpenStack 简介
         </h1>
 
         <div class="post-meta">
@@ -218,7 +234,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>本文关于云计算方面资料主要源于维基百科，OpenStack部分源于对<a href="http://www.solinea.com/2013/06/15/openstack-grizzly-architecture-revisited/" target="_blank" rel="noopener">OpenStack Grizzly Architecture</a>的翻译修改。 </p>
+        <p>本文关于云计算方面资料主要源于维基百科，OpenStack部分源于对<a href="http://www.solinea.com/2013/06/15/openstack-grizzly-architecture-revisited/" target="_blank" rel="noopener">OpenStack Grizzly Architecture</a>的翻译修改。 </p>
 <h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p>OpenStack是当下最为活跃的为公共及私有云的建设与管理提供软件的开源项目（由<a href="http://zh.wikipedia.org/wiki/%E7%BE%8E%E5%9C%8B%E5%A4%AA%E7%A9%BA%E7%B8%BD%E7%BD%B2" target="_blank" rel="noopener">NASA</a>和<a href="http://zh.wikipedia.org/wiki/Rackspace" target="_blank" rel="noopener">RackSpance</a>合作开发，以<a href="http://zh.wikipedia.org/wiki/Apache%E8%A8%B1%E5%8F%AF%E8%AD%89" target="_blank" rel="noopener">Apache许可证</a>授权），提供了完整的IaaS解决方案。任何企业和个人都可以使用OpenStack搭建私有云平台向企业内部提供服务，也可以搭建公共云平台向外部提供云服务。目前OpenStack已经有160多的成员，包括诸多行业翘楚。 </p>
 <h3 id="云计算"><a href="#云计算" class="headerlink" title="云计算"></a>云计算</h3><p>云计算是一种基于互联网的计算方式，通过这种方式，共享的软硬件资源和信息可以按需求提供给计算机和其他设备。<br>根据美国国家标准和技术研究院（NIST）云计算有如下特征： </p>
 <ul>
@@ -386,15 +402,23 @@
 <li><a href="http://en.wikipedia.org/wiki/OpenStack" target="_blank" rel="noopener">OpenStack</a></li>
 </ol>
 
-      
     </div>
 
     
     
     
+
       <footer class="post-footer">
-        <div class="post-eof"></div>
+          <div class="post-tags">
+              <a href="/tags/OpenStack-IaaS-%E7%AE%80%E4%BB%8B/" rel="tag"># OpenStack, IaaS, 简介</a>
+          </div>
+
+        
+
+
+        
       </footer>
+    
   </article>
   
   
@@ -402,12 +426,10 @@
 
   </div>
 
-  
-
-
 
           </div>
           
+    <div class="comments" id="gitalk-container"></div>
 
 <script>
   window.addEventListener('tabs:register', () => {
@@ -454,6 +476,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#云计算"><span class="nav-number">2.</span> <span class="nav-text">云计算</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#云计算服务模式"><span class="nav-number">2.1.</span> <span class="nav-text">云计算服务模式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#云计算部署模型"><span class="nav-number">2.2.</span> <span class="nav-text">云计算部署模型</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OpenStack"><span class="nav-number">3.</span> <span class="nav-text">OpenStack</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#技术框架"><span class="nav-number">3.1.</span> <span class="nav-text">技术框架</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#产品线路图"><span class="nav-number">3.2.</span> <span class="nav-text">产品线路图</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#OpenStack-组件-Grizzly"><span class="nav-number">3.3.</span> <span class="nav-text">OpenStack 组件(Grizzly)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#概念架构"><span class="nav-number">3.4.</span> <span class="nav-text">概念架构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#逻辑架构"><span class="nav-number">3.5.</span> <span class="nav-text">逻辑架构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Dashboard"><span class="nav-number">3.6.</span> <span class="nav-text">Dashboard</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Compute"><span class="nav-number">3.7.</span> <span class="nav-text">Compute</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Object-store"><span class="nav-number">3.8.</span> <span class="nav-text">Object store</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Image-Store"><span class="nav-number">3.9.</span> <span class="nav-text">Image Store</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Identity"><span class="nav-number">3.10.</span> <span class="nav-text">Identity</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Network"><span class="nav-number">3.11.</span> <span class="nav-text">Network</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Block-Storage"><span class="nav-number">3.12.</span> <span class="nav-text">Block Storage</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#后记"><span class="nav-number">4.</span> <span class="nav-text">后记</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考文档"><span class="nav-number">5.</span> <span class="nav-text">参考文档</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -564,6 +587,25 @@
 
   
 
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'fe2c9a6490aaeb1a7644',
+      clientSecret: '2e7d73887f373fd28de3ff58cf33b5be40bfbd33',
+      repo        : 'davidnotes.github.io',
+      owner       : 'davidnotes',
+      admin       : ['davidnotes'],
+      id          : '04ef2f655b5dcc77c88a4864ec0a3510',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
 
 </body>
 </html>
